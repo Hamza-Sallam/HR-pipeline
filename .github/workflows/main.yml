@@ -30,7 +30,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/${{ github.repository_owner }}/Omar-Hr-AI
+          images: ghcr.io/${{ github.repository_owner }}/omar-hr-ai
           tags: |
             type=sha
 
