@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: '180Degree',
   description: 'AI-Powered HR Assistant',
   icons: {
-    icon: '/Artboard-440.png.webp',
+    icon: '/logo.png',
   },
 };
 

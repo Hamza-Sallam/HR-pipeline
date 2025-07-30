@@ -520,7 +520,7 @@ export default function Home() {
       </main>
       <footer className="py-4 border-t mt-8">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} 90Degree. All rights reserved.
+            © {new Date().getFullYear()} 180Degree. All rights reserved.
         </div>
       </footer>
     </div>
