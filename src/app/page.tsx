@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,6 +26,17 @@ import { useLanguage } from "@/contexts/language-context";
 import { getTranslation } from "@/lib/translations";
 import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck } from "lucide-react";
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-6 w-6 animate-spin" />
+        <span>Loading...</span>
+      </div>
+    </div>
+  );
+}
+
 // Schemas for form validation
 const jdSchema = z.object({
   jobTitle: z.string().min(3, "Job title must be at least 3 characters."),
@@ -42,7 +53,7 @@ const letterSchema = z.object({
 
 type SelectedCandidate = CvScoringOutput[0] & { cvSummary: string };
 
-export default function Home() {
+function HomeContent() {
   const { toast } = useToast();
   const { language } = useLanguage();
 
@@ -536,7 +547,15 @@ export default function Home() {
             {getTranslation(language, "allRightsReserved", { year: new Date().getFullYear() })}
         </div>
       </footer>
-    </div>
+         </div>
+   );
+ }
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <HomeContent />
+    </Suspense>
   );
 }
 
