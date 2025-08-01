@@ -16,6 +16,7 @@ const GenerateInterviewQuestionsInputSchema = z.object({
   cvSummary: z.string().describe('Summary of the candidate\'s CV.'),
   jobDescription: z.string().describe('The job description for the role.'),
   focusSkills: z.string().optional().describe('Optional: Focus skills or evaluation goals.'),
+  language: z.enum(['en', 'ar', 'tr']).describe('The language for the output.'),
 });
 export type GenerateInterviewQuestionsInput = z.infer<typeof GenerateInterviewQuestionsInputSchema>;
 
@@ -36,14 +37,28 @@ const interviewQuestionsPrompt = ai.definePrompt({
   output: {schema: GenerateInterviewQuestionsOutputSchema},
   prompt: `You are an expert HR assistant specializing in generating interview questions.
 
-  Based on the candidate's CV summary and the job description, generate a list of interview questions covering technical, behavioral, and situational aspects.
+TASK: Generate interview questions in the specified language based on the candidate's CV summary and job description.
 
-  CV Summary: {{{cvSummary}}}
-  Job Description: {{{jobDescription}}}
-  Focus Skills/Goals: {{{focusSkills}}}
+LANGUAGE: {{{language}}}
+CV Summary: {{{cvSummary}}}
+Job Description: {{{jobDescription}}}
+Focus Skills/Goals: {{{focusSkills}}}
 
-  Generate a diverse set of questions to evaluate the candidate effectively.  Ensure that the questions are relevant to both the CV and job description.
-  `,
+LANGUAGE REQUIREMENTS:
+- Generate all questions in the specified language (English, Arabic, or Turkish)
+- Use appropriate cultural and linguistic conventions for the target language
+- For Arabic: Use right-to-left text direction and appropriate Arabic business terminology
+- For Turkish: Use appropriate Turkish business terminology and formal language
+- For English: Use standard professional English
+
+INSTRUCTIONS:
+- Generate a diverse set of questions covering technical, behavioral, and situational aspects
+- Ensure questions are relevant to both the CV and job description
+- Create questions that will effectively evaluate the candidate's qualifications and fit
+- Use culturally appropriate language and business terminology
+- Generate 5-8 questions for each category (technical, behavioral, situational)
+
+Remember to generate all questions in the specified language with appropriate cultural context.`,
 });
 
 const generateInterviewQuestionsFlow = ai.defineFlow(

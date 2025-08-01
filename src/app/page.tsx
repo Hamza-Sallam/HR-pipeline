@@ -133,7 +133,7 @@ function HomeContent() {
     setSelectedCandidate(null);
     try {
       const cvDataUris = await Promise.all(cvFiles.map(fileToBase64));
-      const input: CvScoringInput = { jobDescription, cvs: cvDataUris };
+      const input: CvScoringInput = { jobDescription, cvs: cvDataUris, language };
       const result = await cvScoring(input);
       setCvScores(result);
       toast({ title: getTranslation(language, "success"), description: getTranslation(language, "cvsScored", { count: result.length }) });
@@ -154,6 +154,7 @@ function HomeContent() {
         jobDescription,
         cvSummary: selectedCandidate.cvSummary,
         focusSkills: data.focusSkills,
+        language,
       };
       const result = await generateInterviewQuestions(input);
       setInterviewQuestions(result);
@@ -171,11 +172,14 @@ function HomeContent() {
     setIsLoadingLetter(true);
     setLetter(null);
     const jdTitle = jdForm.getValues("jobTitle");
+    const companyName = jdForm.getValues("companyName");
     try {
       const input: OfferRejectionLetterInput = {
         candidateName: selectedCandidate.candidateName,
+        companyName: companyName,
         jobTitle: jdTitle,
         decision: values.decision,
+        language,
         ...(values.decision === 'Offer' && { salary: values.salary, startDate: values.startDate }),
       };
       const result = await offerRejectionLetterGenerator(input);

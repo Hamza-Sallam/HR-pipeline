@@ -13,6 +13,7 @@ import {z} from 'genkit';
 const CvScoringInputSchema = z.object({
   jobDescription: z.string().describe('The job description to match CVs against.'),
   cvs: z.array(z.string().describe("The candidate's CV as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'.")).describe('A list of CVs to score.'),
+  language: z.enum(['en', 'ar', 'tr']).describe('The language for the output.'),
 });
 export type CvScoringInput = z.infer<typeof CvScoringInputSchema>;
 
@@ -35,10 +36,18 @@ const prompt = ai.definePrompt({
   output: {schema: CvScoringOutputSchema},
   prompt: `You are a senior HR professional and recruitment expert with over 15 years of experience in talent acquisition, CV evaluation, and candidate assessment. You specialize in matching candidate profiles to job requirements using comprehensive evaluation methodologies.
 
-TASK: Evaluate and score each CV against the provided job description using a structured, objective scoring system.
+TASK: Evaluate and score each CV against the provided job description using a structured, objective scoring system. Generate all output in the specified language.
 
+LANGUAGE: {{{language}}}
 JOB DESCRIPTION:
 {{{jobDescription}}}
+
+LANGUAGE REQUIREMENTS:
+- Generate all justifications and evaluations in the specified language (English, Arabic, or Turkish)
+- Use appropriate cultural and linguistic conventions for the target language
+- For Arabic: Use right-to-left text direction and appropriate Arabic business terminology
+- For Turkish: Use appropriate Turkish business terminology and formal language
+- For English: Use standard professional English
 
 EVALUATION FRAMEWORK:
 
@@ -71,6 +80,7 @@ EVALUATION FRAMEWORK:
    - Highlight only the most relevant strengths or concerns
    - Focus on key qualifications that directly impact the score
    - Be objective and evidence-based in your assessment
+   - Write justifications in the specified language
 
 5. SPECIAL CONSIDERATIONS:
    - Look for potential beyond current qualifications
@@ -86,10 +96,10 @@ CVs TO EVALUATE:
 
 For each candidate, provide:
 1. A numerical score (0-100) based on the evaluation framework
-2. A brief justification (2-3 sentences maximum) highlighting key strengths or concerns
+2. A brief justification (2-3 sentences maximum) highlighting key strengths or concerns in the specified language
 3. Focus on the most relevant qualifications that directly impact the score
 
-Remember to be fair, objective, and concise in your evaluation.`,
+Remember to be fair, objective, and concise in your evaluation. All text output must be in the specified language.`,
 });
 
 const cvScoringFlow = ai.defineFlow(
