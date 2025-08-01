@@ -4,6 +4,13 @@ A comprehensive HR management platform powered by artificial intelligence to str
 
 ## 🚀 Features
 
+### 0. **Multi-Language Support**
+- Language selector in the top right corner
+- Support for English, Arabic, and Turkish
+- URL query parameter support (`?lang=en`, `?lang=ar`, `?lang=tr`)
+- RTL (Right-to-Left) layout support for Arabic
+- Complete UI translation for all supported languages
+
 ### 1. **Job Description Generator**
 - Create compelling, professional job descriptions with AI
 - Tailored for different experience levels (Entry, Mid, Senior)
@@ -36,6 +43,7 @@ A comprehensive HR management platform powered by artificial intelligence to str
 - **Form Handling**: React Hook Form with Zod validation
 - **Styling**: Tailwind CSS with custom components
 - **Development**: TypeScript for type safety
+- **Internationalization**: Custom translation system with RTL support
 
 ## 📋 Prerequisites
 
@@ -119,8 +127,13 @@ src/
 ├── components/                   # Reusable UI components
 │   ├── icons/                   # Logo and icon components
 │   └── ui/                      # Radix UI components
+│       └── language-selector.tsx # Language selector component
+├── contexts/                     # React contexts
+│   ├── language-context.tsx     # Language management
+│   └── rtl-context.tsx          # RTL layout support
 ├── hooks/                       # Custom React hooks
 └── lib/                         # Utility functions
+    └── translations.ts          # Translation definitions
 ```
 
 ## 🔧 Available Scripts

@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import { LanguageProvider } from '@/contexts/language-context';
+import { RTLProvider } from '@/contexts/rtl-context';
 
 export const metadata: Metadata = {
   title: '180Degree',
@@ -24,8 +26,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
       </head>
       <body className={cn('min-h-screen bg-background font-sans antialiased font-body')}>
-        {children}
-        <Toaster />
+        <LanguageProvider>
+          <RTLProvider>
+            {children}
+            <Toaster />
+          </RTLProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

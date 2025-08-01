@@ -59,3 +59,122 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+/* RTL Support */
+.rtl {
+  direction: rtl;
+  text-align: right;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Only reverse flex direction for specific cases, not all flex containers */
+.rtl .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Text alignment adjustments */
+.rtl .text-right {
+  text-align: left;
+}
+
+.rtl .text-left {
+  text-align: right;
+}
+
+/* Justify content adjustments */
+.rtl .justify-end {
+  justify-content: flex-start;
+}
+
+.rtl .justify-start {
+  justify-content: flex-end;
+}
+
+/* Margin adjustments */
+.rtl .ml-auto {
+  margin-left: unset;
+  margin-right: auto;
+}
+
+.rtl .mr-auto {
+  margin-right: unset;
+  margin-left: auto;
+}
+
+/* Padding adjustments */
+.rtl .pl-5 {
+  padding-left: unset;
+  padding-right: 1.25rem;
+}
+
+.rtl .pr-5 {
+  padding-right: unset;
+  padding-left: 1.25rem;
+}
+
+/* Float adjustments */
+.rtl .float-right {
+  float: left;
+}
+
+.rtl .float-left {
+  float: right;
+}
+
+/* Ensure block elements remain block in RTL */
+.rtl div,
+.rtl p,
+.rtl h1,
+.rtl h2,
+.rtl h3,
+.rtl h4,
+.rtl h5,
+.rtl h6,
+.rtl section,
+.rtl article,
+.rtl aside,
+.rtl header,
+.rtl footer,
+.rtl nav,
+.rtl main {
+  display: block;
+}
+
+/* Specific RTL adjustments for common layout patterns */
+.rtl .space-x-2 > * + * {
+  margin-left: unset;
+  margin-right: 0.5rem;
+}
+
+.rtl .space-x-3 > * + * {
+  margin-left: unset;
+  margin-right: 0.75rem;
+}
+
+.rtl .space-x-4 > * + * {
+  margin-left: unset;
+  margin-right: 1rem;
+}
+
+.rtl .space-x-6 > * + * {
+  margin-left: unset;
+  margin-right: 1.5rem;
+}
+
+/* Ensure proper spacing for flex items in RTL */
+.rtl .gap-2 {
+  gap: 0.5rem;
+}
+
+.rtl .gap-3 {
+  gap: 0.75rem;
+}
+
+.rtl .gap-4 {
+  gap: 1rem;
+}
+
+.rtl .gap-6 {
+  gap: 1.5rem;
+}

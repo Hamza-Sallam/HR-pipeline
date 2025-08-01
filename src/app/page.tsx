@@ -21,11 +21,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/icons/logo";
+import { LanguageSelector } from "@/components/ui/language-selector";
+import { useLanguage } from "@/contexts/language-context";
+import { getTranslation } from "@/lib/translations";
 import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck } from "lucide-react";
 
 // Schemas for form validation
 const jdSchema = z.object({
   jobTitle: z.string().min(3, "Job title must be at least 3 characters."),
+  companyName: z.string().min(2, "Company name must be at least 2 characters."),
   department: z.string().min(2, "Department must be at least 2 characters."),
   experienceLevel: z.enum(['Entry', 'Mid', 'Senior']),
 });
@@ -40,6 +44,7 @@ type SelectedCandidate = CvScoringOutput[0] & { cvSummary: string };
 
 export default function Home() {
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   // State management for the workflow
   const [jobDescription, setJobDescription] = useState<string | null>(null);
@@ -61,7 +66,7 @@ export default function Home() {
   // Form hooks
   const jdForm = useForm<z.infer<typeof jdSchema>>({
     resolver: zodResolver(jdSchema),
-    defaultValues: { jobTitle: "", department: "", experienceLevel: "Mid" },
+    defaultValues: { jobTitle: "", companyName: "", department: "", experienceLevel: "Mid" },
   });
 
   const letterForm = useForm<z.infer<typeof letterSchema>>({
@@ -88,12 +93,12 @@ export default function Home() {
     setIsLoadingJD(true);
     setJobDescription(null);
     try {
-      const result = await generateJobDescription(values);
+      const result = await generateJobDescription({ ...values, language });
       setJobDescription(result.jobDescription);
-      toast({ title: "Success", description: "Job description generated." });
+      toast({ title: getTranslation(language, "success"), description: getTranslation(language, "jobDescriptionGenerated") });
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to generate job description.", variant: "destructive" });
+      toast({ title: getTranslation(language, "error"), description: getTranslation(language, "failedToGenerateJobDescription"), variant: "destructive" });
     } finally {
       setIsLoadingJD(false);
     }
@@ -109,7 +114,7 @@ export default function Home() {
 
   const handleScoreCVs = async () => {
     if (!jobDescription || cvFiles.length === 0) {
-      toast({ title: "Missing Information", description: "Please generate a job description and upload CVs first.", variant: "destructive" });
+      toast({ title: getTranslation(language, "missingInformation"), description: getTranslation(language, "pleaseGenerateJobDescriptionAndUploadCVs"), variant: "destructive" });
       return;
     }
     setIsLoadingScores(true);
@@ -120,10 +125,10 @@ export default function Home() {
       const input: CvScoringInput = { jobDescription, cvs: cvDataUris };
       const result = await cvScoring(input);
       setCvScores(result);
-      toast({ title: "Success", description: `${result.length} CV(s) scored.` });
+      toast({ title: getTranslation(language, "success"), description: getTranslation(language, "cvsScored", { count: result.length }) });
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to score CVs.", variant: "destructive" });
+      toast({ title: getTranslation(language, "error"), description: getTranslation(language, "failedToScoreCVs"), variant: "destructive" });
     } finally {
       setIsLoadingScores(false);
     }
@@ -141,10 +146,10 @@ export default function Home() {
       };
       const result = await generateInterviewQuestions(input);
       setInterviewQuestions(result);
-      toast({ title: "Success", description: "Interview questions generated." });
+      toast({ title: getTranslation(language, "success"), description: getTranslation(language, "interviewQuestionsGenerated") });
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to generate questions.", variant: "destructive" });
+      toast({ title: getTranslation(language, "error"), description: getTranslation(language, "failedToGenerateQuestions"), variant: "destructive" });
     } finally {
       setIsLoadingQuestions(false);
     }
@@ -164,10 +169,10 @@ export default function Home() {
       };
       const result = await offerRejectionLetterGenerator(input);
       setLetter(result.letter);
-      toast({ title: "Success", description: `${values.decision} letter generated.` });
+      toast({ title: getTranslation(language, "success"), description: getTranslation(language, "letterGenerated", { decision: values.decision }) });
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to generate letter.", variant: "destructive" });
+      toast({ title: getTranslation(language, "error"), description: getTranslation(language, "failedToGenerateLetter"), variant: "destructive" });
     } finally {
       setIsLoadingLetter(false);
     }
@@ -176,7 +181,7 @@ export default function Home() {
   const handleCopy = (text: string | null) => {
     if (!text) return;
     navigator.clipboard.writeText(text);
-    toast({ title: "Copied to clipboard!" });
+    toast({ title: getTranslation(language, "copiedToClipboard") });
   };
   
   const handleDownload = () => {
@@ -194,8 +199,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <header className="p-4 border-b bg-card">
-        <div className="container mx-auto flex items-center gap-4">
+        <div className="container mx-auto flex items-center justify-between">
           <Logo className="h-8 w-auto" />
+          <LanguageSelector />
         </div>
       </header>
 
@@ -208,46 +214,53 @@ export default function Home() {
                 <Briefcase className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl">Job Description Generator</CardTitle>
-                <CardDescription>Create a compelling job description with AI.</CardDescription>
+                <CardTitle className="text-xl">{getTranslation(language, "jobDescriptionGenerator")}</CardTitle>
+                <CardDescription>{getTranslation(language, "jobDescriptionDescription")}</CardDescription>
               </div>
             </div>
           </CardHeader>
           <Form {...jdForm}>
             <form onSubmit={jdForm.handleSubmit(handleGenerateDescription)}>
-              <CardContent className="grid md:grid-cols-3 gap-6">
+              <CardContent className="grid md:grid-cols-2 gap-6">
                 <FormField control={jdForm.control} name="jobTitle" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Title</FormLabel>
-                    <FormControl><Input placeholder="e.g., Senior Frontend Developer" {...field} /></FormControl>
+                                      <FormLabel>{getTranslation(language, "jobTitle")}</FormLabel>
+                  <FormControl><Input placeholder={getTranslation(language, "jobTitlePlaceholder")} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={jdForm.control} name="companyName" render={({ field }) => (
+                  <FormItem>
+                                      <FormLabel>{getTranslation(language, "companyName")}</FormLabel>
+                  <FormControl><Input placeholder={getTranslation(language, "companyNamePlaceholder")} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={jdForm.control} name="department" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
-                    <FormControl><Input placeholder="e.g., Engineering" {...field} /></FormControl>
+                                      <FormLabel>{getTranslation(language, "department")}</FormLabel>
+                  <FormControl><Input placeholder={getTranslation(language, "departmentPlaceholder")} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={jdForm.control} name="experienceLevel" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Experience Level</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="Entry">Entry</SelectItem>
-                        <SelectItem value="Mid">Mid</SelectItem>
-                        <SelectItem value="Senior">Senior</SelectItem>
-                      </SelectContent>
-                    </Select>
+                                      <FormLabel>{getTranslation(language, "experienceLevel")}</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder={getTranslation(language, "selectLevel")} /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="Entry">{getTranslation(language, "entry")}</SelectItem>
+                      <SelectItem value="Mid">{getTranslation(language, "mid")}</SelectItem>
+                      <SelectItem value="Senior">{getTranslation(language, "senior")}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   </FormItem>
                 )} />
               </CardContent>
               <CardFooter className="justify-end">
                 <Button type="submit" disabled={isLoadingJD}>
                   {isLoadingJD ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  Generate Job Description
+                  {getTranslation(language, "generateJobDescription")}
                 </Button>
               </CardFooter>
             </form>
@@ -256,7 +269,7 @@ export default function Home() {
 
         {isLoadingJD && (
             <Card className="shadow-md transition-all">
-                <CardHeader><CardTitle>Generated Job Description</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{getTranslation(language, "generatedJobDescription")}</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <Skeleton className="h-4 w-1/2" />
                     <Skeleton className="h-20 w-full" />
@@ -269,7 +282,7 @@ export default function Home() {
         {jobDescription && !isLoadingJD && (
           <Card className="shadow-md transition-all">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Generated Job Description</CardTitle>
+              <CardTitle>{getTranslation(language, "generatedJobDescription")}</CardTitle>
               <Button variant="ghost" size="icon" onClick={() => handleCopy(jobDescription)}><Clipboard className="h-4 w-4" /></Button>
             </CardHeader>
             <CardContent>
@@ -286,19 +299,19 @@ export default function Home() {
                 <UserCheck className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl">CV Upload & Scoring</CardTitle>
-                <CardDescription>Upload CVs to score them against the job description.</CardDescription>
+                              <CardTitle className="text-xl">{getTranslation(language, "cvUploadScoring")}</CardTitle>
+              <CardDescription>{getTranslation(language, "cvUploadDescription")}</CardDescription>
                </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="cv-upload">Upload CVs (PDF/TXT)</Label>
+              <Label htmlFor="cv-upload">{getTranslation(language, "uploadCVs")}</Label>
               <Input id="cv-upload" type="file" multiple onChange={(e) => setCvFiles(Array.from(e.target.files || []))} className="mt-1 file:text-primary file:font-semibold"/>
             </div>
             {cvFiles.length > 0 && (
                 <div className="text-sm text-muted-foreground space-y-1">
-                    <p className="font-medium">Selected files:</p>
+                    <p className="font-medium">{getTranslation(language, "selectedFiles")}</p>
                     <ul className="list-disc pl-5">
                         {cvFiles.map((file, i) => <li key={i}>{file.name}</li>)}
                     </ul>
@@ -308,22 +321,22 @@ export default function Home() {
           <CardFooter className="justify-end">
             <Button onClick={handleScoreCVs} disabled={isLoadingScores || cvFiles.length === 0}>
               {isLoadingScores ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-              Score CVs
+              {getTranslation(language, "scoreCVs")}
             </Button>
           </CardFooter>
         </Card>
 
         {(isLoadingScores || cvScores) && (
             <Card className="shadow-md transition-all">
-                <CardHeader><CardTitle>Scoring Results</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{getTranslation(language, "scoringResults")}</CardTitle></CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Candidate Name</TableHead>
-                            <TableHead className="w-[100px] text-center">Score</TableHead>
-                            <TableHead>Justification</TableHead>
-                            <TableHead className="w-[120px] text-right">Action</TableHead>
+                            <TableHead>{getTranslation(language, "candidateNameHeader")}</TableHead>
+                            <TableHead className="w-[100px] text-center">{getTranslation(language, "scoreHeader")}</TableHead>
+                            <TableHead>{getTranslation(language, "justificationHeader")}</TableHead>
+                            <TableHead className="w-[120px] text-right">{getTranslation(language, "actionHeader")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -344,7 +357,7 @@ export default function Home() {
                                     <TableCell className="text-muted-foreground">{score.justification}</TableCell>
                                     <TableCell className="text-right">
                                         <Button size="sm" onClick={() => setSelectedCandidate({...score, cvSummary: score.justification})}>
-                                            Select
+                                            {getTranslation(language, "select")}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -364,19 +377,19 @@ export default function Home() {
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl">Custom Interview Questions</CardTitle>
-                <CardDescription>Generate tailored questions for {selectedCandidate?.candidateName || 'the candidate'}.</CardDescription>
+                              <CardTitle className="text-xl">{getTranslation(language, "customInterviewQuestions")}</CardTitle>
+              <CardDescription>{getTranslation(language, "customInterviewDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
               </div>
             </div>
           </CardHeader>
           <form onSubmit={(e) => { e.preventDefault(); handleGenerateQuestions({ focusSkills: (e.target as any).focusSkills.value }); }}>
             <CardContent className="space-y-4">
-              <Input name="focusSkills" placeholder="Optional: Focus skills or evaluation goals (e.g., React hooks, team collaboration)" />
+              <Input name="focusSkills" placeholder={getTranslation(language, "focusSkillsPlaceholder")} />
             </CardContent>
             <CardFooter className="justify-end">
               <Button type="submit" disabled={isLoadingQuestions}>
                 {isLoadingQuestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                Generate Questions
+                {getTranslation(language, "generateQuestions")}
               </Button>
             </CardFooter>
           </form>
@@ -385,7 +398,7 @@ export default function Home() {
         {(isLoadingQuestions || interviewQuestions) && (
              <Card className="shadow-md transition-all">
                 <CardHeader>
-                    <CardTitle>Generated Interview Questions</CardTitle>
+                    <CardTitle>{getTranslation(language, "generatedInterviewQuestions")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isLoadingQuestions ? (
@@ -398,7 +411,7 @@ export default function Home() {
                         interviewQuestions && (
                             <Accordion type="multiple" className="w-full">
                                 <AccordionItem value="technical">
-                                    <AccordionTrigger>Technical Questions</AccordionTrigger>
+                                    <AccordionTrigger>{getTranslation(language, "technicalQuestions")}</AccordionTrigger>
                                     <AccordionContent>
                                         <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                                             {interviewQuestions.technicalQuestions.map((q, i) => <li key={`tech-${i}`}>{q}</li>)}
@@ -406,7 +419,7 @@ export default function Home() {
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="behavioral">
-                                    <AccordionTrigger>Behavioral Questions</AccordionTrigger>
+                                    <AccordionTrigger>{getTranslation(language, "behavioralQuestions")}</AccordionTrigger>
                                     <AccordionContent>
                                         <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                                             {interviewQuestions.behavioralQuestions.map((q, i) => <li key={`behav-${i}`}>{q}</li>)}
@@ -414,7 +427,7 @@ export default function Home() {
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="situational">
-                                    <AccordionTrigger>Situational Questions</AccordionTrigger>
+                                    <AccordionTrigger>{getTranslation(language, "situationalQuestions")}</AccordionTrigger>
                                     <AccordionContent>
                                         <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
                                             {interviewQuestions.situationalQuestions.map((q, i) => <li key={`sit-${i}`}>{q}</li>)}
@@ -436,8 +449,8 @@ export default function Home() {
                 <Paperclip className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-xl">Offer or Rejection Letter</CardTitle>
-                <CardDescription>Generate a formal letter for {selectedCandidate?.candidateName || 'the candidate'}.</CardDescription>
+                              <CardTitle className="text-xl">{getTranslation(language, "offerRejectionLetter")}</CardTitle>
+              <CardDescription>{getTranslation(language, "offerRejectionDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -445,35 +458,35 @@ export default function Home() {
             <form onSubmit={letterForm.handleSubmit(handleGenerateLetter)}>
               <CardContent className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <Label>Candidate Name</Label>
+                    <Label>{getTranslation(language, "candidateName")}</Label>
                     <Input disabled value={selectedCandidate?.candidateName || ''} />
                 </div>
                 <div className="space-y-2">
-                    <Label>Job Title</Label>
+                    <Label>{getTranslation(language, "jobTitle")}</Label>
                     <Input disabled value={jdForm.watch('jobTitle') || ''} />
                 </div>
                 <FormField control={letterForm.control} name="decision" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Decision</FormLabel>
-                    <Select onValueChange={(value: 'Offer' | 'Reject') => { field.onChange(value); setLetterDecision(value); }} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select decision" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="Offer">Offer</SelectItem>
-                        <SelectItem value="Reject">Reject</SelectItem>
-                      </SelectContent>
-                    </Select>
+                                      <FormLabel>{getTranslation(language, "decision")}</FormLabel>
+                  <Select onValueChange={(value: 'Offer' | 'Reject') => { field.onChange(value); setLetterDecision(value); }} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder={getTranslation(language, "selectDecision")} /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="Offer">{getTranslation(language, "offer")}</SelectItem>
+                      <SelectItem value="Reject">{getTranslation(language, "reject")}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   </FormItem>
                 )} />
                 <div className={`grid md:grid-cols-2 gap-6 transition-opacity ${letterDecision === 'Offer' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                    <FormField control={letterForm.control} name="salary" render={({ field }) => (
                      <FormItem>
-                       <FormLabel>Salary</FormLabel>
-                       <FormControl><Input placeholder="e.g., $120,000" {...field} /></FormControl>
+                       <FormLabel>{getTranslation(language, "salary")}</FormLabel>
+                       <FormControl><Input placeholder={getTranslation(language, "salaryPlaceholder")} {...field} /></FormControl>
                      </FormItem>
                    )} />
                     <FormField control={letterForm.control} name="startDate" render={({ field }) => (
                      <FormItem>
-                       <FormLabel>Start Date</FormLabel>
+                       <FormLabel>{getTranslation(language, "startDate")}</FormLabel>
                        <FormControl><Input type="date" {...field} /></FormControl>
                      </FormItem>
                    )} />
@@ -482,7 +495,7 @@ export default function Home() {
               <CardFooter className="justify-end">
                 <Button type="submit" disabled={isLoadingLetter}>
                   {isLoadingLetter ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  Generate Letter
+                  {getTranslation(language, "generateLetter")}
                 </Button>
               </CardFooter>
             </form>
@@ -492,7 +505,7 @@ export default function Home() {
         {(isLoadingLetter || letter) && (
             <Card className="shadow-md transition-all">
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Generated Letter</CardTitle>
+                    <CardTitle>{getTranslation(language, "generatedLetter")}</CardTitle>
                     {!isLoadingLetter && letter && (
                         <div className="flex gap-2">
                             <Button variant="ghost" size="icon" onClick={() => handleCopy(letter)}><Clipboard className="h-4 w-4" /></Button>
@@ -520,7 +533,7 @@ export default function Home() {
       </main>
       <footer className="py-4 border-t mt-8">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} 180Degree. All rights reserved.
+            {getTranslation(language, "allRightsReserved", { year: new Date().getFullYear() })}
         </div>
       </footer>
     </div>
