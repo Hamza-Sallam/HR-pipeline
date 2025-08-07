@@ -25,6 +25,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { getTranslation } from "@/lib/translations";
 import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 function LoadingFallback() {
   return (
@@ -74,6 +75,9 @@ function HomeContent() {
   const [isLoadingLetter, setIsLoadingLetter] = useState(false);
   const [letterDecision, setLetterDecision] = useState<'Offer' | 'Reject'>('Reject');
 
+  const [jdInputMode, setJdInputMode] = useState<'ai' | 'manual'>('ai');
+  const [manualJobDescription, setManualJobDescription] = useState('');
+
   // Form hooks
   const jdForm = useForm<z.infer<typeof jdSchema>>({
     resolver: zodResolver(jdSchema),
@@ -99,6 +103,12 @@ function HomeContent() {
       setLetterDecision('Reject');
     }
   }, [selectedCandidate, letterForm]);
+
+  useEffect(() => {
+    if (jdInputMode === 'manual') {
+      setJobDescription(manualJobDescription || null);
+    }
+  }, [manualJobDescription, jdInputMode]);
 
   const handleGenerateDescription = async (values: z.infer<typeof jdSchema>) => {
     setIsLoadingJD(true);
@@ -221,7 +231,7 @@ function HomeContent() {
       </header>
 
       <main className="container mx-auto p-4 md:p-8 flex flex-col gap-8">
-        {/* 1. Job Description Generator */}
+        {/* 1. Job Description Generator/Manual Input */}
         <Card className="shadow-md transition-all">
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -234,77 +244,95 @@ function HomeContent() {
               </div>
             </div>
           </CardHeader>
-          <Form {...jdForm}>
-            <form onSubmit={jdForm.handleSubmit(handleGenerateDescription)}>
-              <CardContent className="grid md:grid-cols-2 gap-6">
-                <FormField control={jdForm.control} name="jobTitle" render={({ field }) => (
-                  <FormItem>
-                                      <FormLabel>{getTranslation(language, "jobTitle")}</FormLabel>
-                  <FormControl><Input placeholder={getTranslation(language, "jobTitlePlaceholder")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={jdForm.control} name="companyName" render={({ field }) => (
-                  <FormItem>
-                                      <FormLabel>{getTranslation(language, "companyName")}</FormLabel>
-                  <FormControl><Input placeholder={getTranslation(language, "companyNamePlaceholder")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={jdForm.control} name="department" render={({ field }) => (
-                  <FormItem>
-                                      <FormLabel>{getTranslation(language, "department")}</FormLabel>
-                  <FormControl><Input placeholder={getTranslation(language, "departmentPlaceholder")} {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-                <FormField control={jdForm.control} name="experienceLevel" render={({ field }) => (
-                  <FormItem>
-                                      <FormLabel>{getTranslation(language, "experienceLevel")}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder={getTranslation(language, "selectLevel")} /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      <SelectItem value="Entry">{getTranslation(language, "entry")}</SelectItem>
-                      <SelectItem value="Mid">{getTranslation(language, "mid")}</SelectItem>
-                      <SelectItem value="Senior">{getTranslation(language, "senior")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  </FormItem>
-                )} />
-              </CardContent>
-              <CardFooter className="justify-end">
-                <Button type="submit" disabled={isLoadingJD}>
-                  {isLoadingJD ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  {getTranslation(language, "generateJobDescription")}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-        </Card>
-
-        {isLoadingJD && (
-            <Card className="shadow-md transition-all">
-                <CardHeader><CardTitle>{getTranslation(language, "generatedJobDescription")}</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
+          <CardContent>
+            <Tabs defaultValue="ai" value={jdInputMode} onValueChange={(value) => setJdInputMode(value as 'ai' | 'manual')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="ai">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {getTranslation(language, "generateWithAI")}
+                </TabsTrigger>
+                <TabsTrigger value="manual">
+                  <FileText className="w-4 h-4 mr-2" />
+                  {getTranslation(language, "inputManually")}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="ai">
+                <Form {...jdForm}>
+                  <form onSubmit={jdForm.handleSubmit(handleGenerateDescription)}>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <FormField control={jdForm.control} name="jobTitle" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{getTranslation(language, "jobTitle")}</FormLabel>
+                          <FormControl><Input placeholder={getTranslation(language, "jobTitlePlaceholder")} {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={jdForm.control} name="companyName" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{getTranslation(language, "companyName")}</FormLabel>
+                          <FormControl><Input placeholder={getTranslation(language, "companyNamePlaceholder")} {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={jdForm.control} name="department" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{getTranslation(language, "department")}</FormLabel>
+                          <FormControl><Input placeholder={getTranslation(language, "departmentPlaceholder")} {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={jdForm.control} name="experienceLevel" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{getTranslation(language, "experienceLevel")}</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder={getTranslation(language, "selectLevel")} /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="Entry">{getTranslation(language, "entry")}</SelectItem>
+                              <SelectItem value="Mid">{getTranslation(language, "mid")}</SelectItem>
+                              <SelectItem value="Senior">{getTranslation(language, "senior")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )} />
+                    </div>
+                    <CardFooter className="justify-end">
+                      <Button type="submit" disabled={isLoadingJD}>
+                        {isLoadingJD ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        {getTranslation(language, "generateJobDescription")}
+                      </Button>
+                    </CardFooter>
+                  </form>
+                </Form>
+                {isLoadingJD && (
+                  <div className="mt-4">
                     <Skeleton className="h-4 w-1/2" />
                     <Skeleton className="h-20 w-full" />
                     <Skeleton className="h-4 w-1/3" />
                     <Skeleton className="h-16 w-full" />
-                </CardContent>
-            </Card>
-        )}
-        
-        {jobDescription && !isLoadingJD && (
-          <Card className="shadow-md transition-all">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{getTranslation(language, "generatedJobDescription")}</CardTitle>
-              <Button variant="ghost" size="icon" onClick={() => handleCopy(jobDescription)}><Clipboard className="h-4 w-4" /></Button>
-            </CardHeader>
-            <CardContent>
-              <Textarea readOnly value={jobDescription} className="h-64 bg-secondary/50" />
-            </CardContent>
-          </Card>
-        )}
+                  </div>
+                )}
+                {jobDescription && !isLoadingJD && (
+                  <div className="mt-4">
+                    <Label>{getTranslation(language, "generatedJobDescription")}</Label>
+                    <Textarea readOnly value={jobDescription} className="h-64 bg-secondary/50" />
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="manual">
+                <Label>{getTranslation(language, "manualJobDescriptionLabel")}</Label>
+                <Textarea
+                  value={manualJobDescription}
+                  onChange={e => {
+                    setManualJobDescription(e.target.value);
+                    setJobDescription(e.target.value || null);
+                  }}
+                  placeholder="Paste the full job description here. More detail helps the AI score CVs more accurately."
+                  className="h-64"
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
 
         {/* 2. CV Upload & Scoring */}
         <Card className={`shadow-md transition-all ${!jobDescription ? 'opacity-50 pointer-events-none' : ''}`}>
