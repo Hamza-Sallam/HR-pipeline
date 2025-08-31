@@ -81,7 +81,7 @@ function HomeContent() {
   // Form hooks
   const jdForm = useForm<z.infer<typeof jdSchema>>({
     resolver: zodResolver(jdSchema),
-    defaultValues: { jobTitle: "", companyName: "", department: "", experienceLevel: "Mid" },
+    defaultValues: { jobTitle: "", companyName: "SmartGaters", department: "", experienceLevel: "Mid" },
   });
 
   const letterForm = useForm<z.infer<typeof letterSchema>>({
@@ -246,12 +246,18 @@ function HomeContent() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="ai" value={jdInputMode} onValueChange={(value) => setJdInputMode(value as 'ai' | 'manual')} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="ai">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/30 p-1 rounded-lg">
+                <TabsTrigger 
+                  value="ai" 
+                  className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/50"
+                >
                   <Sparkles className="w-4 h-4 mr-2" />
                   {getTranslation(language, "generateWithAI")}
                 </TabsTrigger>
-                <TabsTrigger value="manual">
+                <TabsTrigger 
+                  value="manual" 
+                  className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/50"
+                >
                   <FileText className="w-4 h-4 mr-2" />
                   {getTranslation(language, "inputManually")}
                 </TabsTrigger>

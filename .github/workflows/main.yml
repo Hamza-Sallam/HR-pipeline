@@ -1,46 +1,81 @@
-name: Compile Docker Images
+# this file must be  inside a .github/workflows folder in your github repo
+# This workflow is triggered on every push to the 'deploy' branch.
+# You can change 'deploy' to whatever branch you use for deployments.
+name: Docker CI/CD Workflow
 
-on: 
+on:
   push:
     branches:
       - deploy
+      # You can add more branches here if needed, for example:
+      # - production
 
 jobs:
-  main:
+  build-and-deploy:
+    # This job will run on an Ubuntu machine.
     runs-on: ubuntu-latest
+
+    # These permissions are required for the workflow to interact with GitHub's services.
+    # 'contents: read' allows checking out the repository code.
+    # 'packages: write' allows pushing Docker images to GitHub Container Registry (GHCR).
     permissions:
       contents: read
       packages: write
+
     steps:
+      # Step 1: Checkout the repository code.
+      # This action fetches your project's code from GitHub so the workflow can access it.
       - name: Checkout repository
         uses: actions/checkout@v3
-      # - name: Log in to the Container registry
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: registry.180d.tr
-      #     username: ${{ secrets.USERNAME }}
-      #     password: ${{ secrets.PASSWORD }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+
+      # Step 2: Log in to the GitHub Container Registry.
+      # This is a crucial step to authenticate with GHCR, allowing you to push and pull images.
+      # It uses the `github.actor` (the user who triggered the workflow) as the username
+      # and the built-in `GITHUB_TOKEN` secret as the password.
+      - name: Log in to GHCR
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Extract metadata for the Docker image.
+      # This action automatically generates useful information like image tags and labels.
+      # The `id: meta` assigns an ID to this step so we can reference its outputs later.
+      # The `images` field specifies the name of your image. You should change 'your-repo-name'
+      # to your actual repository name. For example: 'your-username/your-app'.
+      # The `tags` field automatically creates a tag based on the commit SHA, which is
+      # great for versioning.
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/omar-hr-ai
+          images: ghcr.io/${{ github.repository_owner }}/smart-hr
           tags: |
             type=sha
-
+            type=raw,value=latest,enable=true
+      
+      # Step 4: Build and push the Docker image.
+      # This is the main part of the workflow where the image is created and sent to GHCR.
+      # `context: .` tells Docker to build from the root directory of your project.
+      # `push: true` automatically pushes the image to the registry after building.
+      # `tags` and `labels` use the outputs from the previous `meta` step.
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Send webhook
+
+      # Step 5: Send a webhook to Portainer to trigger a deployment.
+      # This step is active and configured to work with Portainer.
+      # You must replace 'portainer.servers.tr' with your Portainer instance URL.
+      # The `secrets.WEBHOOK` and `secrets.PORTAINER_STACK_NAME` must be added to your repository settings.
+      # The SHA is passed as a query parameter for Portainer to recognize the specific image version.
+      - name: Send webhook to trigger Portainer deployment
         run: |
-          curl --insecure -X POST https://portainer.servers.tr/api/stacks/webhooks/${{ secrets.WEBHOOK }}?SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          curl --insecure -X POST https://portainer.servers.tr/api/stacks/${{ secrets.PORTAINER_STACK_NAME }}/webhooks/${{ secrets.WEBHOOK }}?SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+
+
+

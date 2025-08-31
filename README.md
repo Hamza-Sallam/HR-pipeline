@@ -1,4 +1,4 @@
-# 180Degree - AI-Powered HR Assistant
+# SmartGaters - AI-Powered HR Assistant
 
 A comprehensive HR management platform powered by artificial intelligence to streamline the entire recruitment process from job description creation to candidate evaluation and communication.
 
@@ -162,4 +162,4 @@ For support and questions, please contact the development team or create an issu
 
 ---
 
-**180Degree** - Revolutionizing HR with AI-powered recruitment solutions.
+**SmartGaters** - Revolutionizing HR with AI-powered recruitment solutions.

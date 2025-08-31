@@ -24,10 +24,12 @@ export const translations = {
     
     // Placeholders
     jobTitlePlaceholder: "e.g., Senior Frontend Developer",
-    companyNamePlaceholder: "e.g., TechCorp Inc.",
+    companyNamePlaceholder: "e.g., SmartGaters",
     departmentPlaceholder: "e.g., Engineering",
     salaryPlaceholder: "e.g., $120,000",
     focusSkillsPlaceholder: "Optional: Focus skills or evaluation goals (e.g., React hooks, team collaboration)",
+    manualJobDescriptionLabel: "Job Description",
+    manualJobDescriptionPlaceholder: "Paste or type your job description here...",
     
     // Options
     entry: "Entry",
@@ -44,6 +46,8 @@ export const translations = {
     generateQuestions: "Generate Questions",
     generateLetter: "Generate Letter",
     select: "Select",
+    generateWithAI: "Generate with AI",
+    inputManually: "Input Manually",
     
     // Table headers
     candidateNameHeader: "Candidate Name",
@@ -82,7 +86,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "Please generate a job description and upload CVs first.",
     
     // Footer
-    allRightsReserved: "© {year} 180Degree. All rights reserved.",
+    allRightsReserved: "© {year} SmartGaters. All rights reserved.",
   },
   
   ar: {
@@ -108,10 +112,12 @@ export const translations = {
     
     // Placeholders
     jobTitlePlaceholder: "مثال: مطور واجهة أمامية كبير",
-    companyNamePlaceholder: "مثال: شركة التقنية المتقدمة",
+    companyNamePlaceholder: "مثال: SmartGaters",
     departmentPlaceholder: "مثال: الهندسة",
     salaryPlaceholder: "مثال: 120,000$",
     focusSkillsPlaceholder: "اختياري: مهارات التركيز أو أهداف التقييم (مثال: React hooks، التعاون الجماعي)",
+    manualJobDescriptionLabel: "وصف الوظيفة",
+    manualJobDescriptionPlaceholder: "الصق أو اكتب وصف الوظيفة هنا...",
     
     // Options
     entry: "مبتدئ",
@@ -128,6 +134,8 @@ export const translations = {
     generateQuestions: "إنشاء الأسئلة",
     generateLetter: "إنشاء الخطاب",
     select: "اختيار",
+    generateWithAI: "إنشاء بالذكاء الاصطناعي",
+    inputManually: "إدخال يدوي",
     
     // Table headers
     candidateNameHeader: "اسم المرشح",
@@ -166,7 +174,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "يرجى إنشاء وصف الوظيفة ورفع السير الذاتية أولاً.",
     
     // Footer
-    allRightsReserved: "© {year} 180Degree. جميع الحقوق محفوظة.",
+    allRightsReserved: "© {year} SmartGaters. جميع الحقوق محفوظة.",
   },
   
   tr: {
@@ -192,10 +200,12 @@ export const translations = {
     
     // Placeholders
     jobTitlePlaceholder: "örn: Kıdemli Frontend Geliştirici",
-    companyNamePlaceholder: "örn: TechCorp A.Ş.",
+    companyNamePlaceholder: "örn: SmartGaters",
     departmentPlaceholder: "örn: Mühendislik",
     salaryPlaceholder: "örn: 120,000$",
     focusSkillsPlaceholder: "İsteğe bağlı: Odaklanılacak beceriler veya değerlendirme hedefleri (örn: React hooks, takım işbirliği)",
+    manualJobDescriptionLabel: "İş Tanımı",
+    manualJobDescriptionPlaceholder: "İş tanımınızı buraya yapıştırın veya yazın...",
     
     // Options
     entry: "Giriş",
@@ -212,6 +222,8 @@ export const translations = {
     generateQuestions: "Soruları Oluştur",
     generateLetter: "Mektup Oluştur",
     select: "Seç",
+    generateWithAI: "AI ile Oluştur",
+    inputManually: "Manuel Gir",
     
     // Table headers
     candidateNameHeader: "Aday Adı",
@@ -250,7 +262,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "Lütfen önce bir iş tanımı oluşturun ve CV'leri yükleyin.",
     
     // Footer
-    allRightsReserved: "© {year} 180Degree. Tüm hakları saklıdır.",
+    allRightsReserved: "© {year} SmartGaters. Tüm hakları saklıdır.",
   },
 } as const;
 

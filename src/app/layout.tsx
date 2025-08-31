@@ -7,10 +7,10 @@ import { LanguageProvider } from '@/contexts/language-context';
 import { RTLProvider } from '@/contexts/rtl-context';
 
 export const metadata: Metadata = {
-  title: '180Degree',
+  title: 'SmartGaters',
   description: 'AI-Powered HR Assistant',
   icons: {
-    icon: '/logo.png',
+    icon: '/logo.jpg',
   },
 };
 
