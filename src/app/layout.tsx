@@ -7,8 +7,8 @@ import { LanguageProvider } from '@/contexts/language-context';
 import { RTLProvider } from '@/contexts/rtl-context';
 
 export const metadata: Metadata = {
-  title: 'SmartGaters',
-  description: 'AI-Powered HR Assistant',
+  title: 'TalentFlow',
+  description: 'AI-Powered Talent Acquisition Platform - Streamline your hiring process with intelligent job descriptions, CV scoring, interview questions, and candidate communications.',
   icons: {
     icon: '/logo.jpg',
   },

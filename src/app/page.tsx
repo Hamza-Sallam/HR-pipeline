@@ -24,7 +24,7 @@ import { Logo } from "@/components/icons/logo";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/contexts/language-context";
 import { getTranslation } from "@/lib/translations";
-import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck } from "lucide-react";
+import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck, BarChart3, TrendingUp, Users, Clock, Target, Award, ArrowRight, X, Plus, Edit3 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 function LoadingFallback() {
@@ -44,6 +44,9 @@ const jdSchema = z.object({
   companyName: z.string().min(2, "Company name must be at least 2 characters."),
   department: z.string().min(2, "Department must be at least 2 characters."),
   experienceLevel: z.enum(['Entry', 'Mid', 'Senior']),
+  technologies: z.string().optional(),
+  skills: z.string().optional(),
+  qualifications: z.string().optional(),
 });
 
 const letterSchema = z.object({
@@ -53,6 +56,19 @@ const letterSchema = z.object({
 });
 
 type SelectedCandidate = CvScoringOutput[0] & { cvSummary: string };
+
+type PipelineStage = 'applied' | 'screened' | 'interviewed' | 'offered' | 'hired' | 'rejected';
+
+interface PipelineCandidate {
+  id: string;
+  name: string;
+  email: string;
+  stage: PipelineStage;
+  score?: number;
+  notes: string;
+  appliedDate: string;
+  lastUpdated: string;
+}
 
 function HomeContent() {
   const { toast } = useToast();
@@ -78,10 +94,25 @@ function HomeContent() {
   const [jdInputMode, setJdInputMode] = useState<'ai' | 'manual'>('ai');
   const [manualJobDescription, setManualJobDescription] = useState('');
 
+  // Pipeline state
+  const [pipelineCandidates, setPipelineCandidates] = useState<PipelineCandidate[]>([]);
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [notesText, setNotesText] = useState('');
+  const [currentPipelineStage, setCurrentPipelineStage] = useState<PipelineStage>('applied');
+  const [pipelineAnimation, setPipelineAnimation] = useState(false);
+
   // Form hooks
   const jdForm = useForm<z.infer<typeof jdSchema>>({
     resolver: zodResolver(jdSchema),
-    defaultValues: { jobTitle: "", companyName: "SmartGaters", department: "", experienceLevel: "Mid" },
+    defaultValues: { 
+      jobTitle: "", 
+      companyName: "TalentFlow", 
+      department: "", 
+      experienceLevel: "Mid",
+      technologies: "",
+      skills: "",
+      qualifications: ""
+    },
   });
 
   const letterForm = useForm<z.infer<typeof letterSchema>>({
@@ -220,27 +251,118 @@ function HomeContent() {
     document.body.removeChild(element);
 };
 
+  // Pipeline management functions
+  const addCandidateToPipeline = (candidate: CvScoringOutput[0]) => {
+    const newCandidate: PipelineCandidate = {
+      id: Date.now().toString(),
+      name: candidate.candidateName,
+      email: `${candidate.candidateName.toLowerCase().replace(' ', '.')}@email.com`,
+      stage: 'applied',
+      score: candidate.score,
+      notes: '',
+      appliedDate: new Date().toISOString().split('T')[0],
+      lastUpdated: new Date().toISOString().split('T')[0]
+    };
+    setPipelineCandidates(prev => [...prev, newCandidate]);
+    toast({ title: getTranslation(language, "success"), description: `${candidate.candidateName} added to pipeline` });
+  };
+
+  const moveCandidateToStage = (candidateId: string, newStage: PipelineStage) => {
+    setPipelineCandidates(prev => prev.map(candidate => 
+      candidate.id === candidateId 
+        ? { ...candidate, stage: newStage, lastUpdated: new Date().toISOString().split('T')[0] }
+        : candidate
+    ));
+    toast({ title: getTranslation(language, "success"), description: "Candidate moved to next stage" });
+  };
+
+  const rejectCandidate = (candidateId: string) => {
+    setPipelineCandidates(prev => prev.map(candidate => 
+      candidate.id === candidateId 
+        ? { ...candidate, stage: 'rejected', lastUpdated: new Date().toISOString().split('T')[0] }
+        : candidate
+    ));
+    toast({ title: getTranslation(language, "success"), description: "Candidate rejected" });
+  };
+
+  const updateCandidateNotes = (candidateId: string, notes: string) => {
+    setPipelineCandidates(prev => prev.map(candidate => 
+      candidate.id === candidateId 
+        ? { ...candidate, notes, lastUpdated: new Date().toISOString().split('T')[0] }
+        : candidate
+    ));
+    setEditingNotes(null);
+    setNotesText('');
+    toast({ title: getTranslation(language, "success"), description: "Notes updated" });
+  };
+
+
+  const getStageStats = () => {
+    const stats = {
+      applied: 0,
+      screened: 0,
+      interviewed: 0,
+      offered: 0,
+      hired: 0,
+      rejected: 0
+    };
+    pipelineCandidates.forEach(candidate => {
+      stats[candidate.stage]++;
+    });
+    return stats;
+  };
+
+  const getCandidatesForStage = (stage: PipelineStage) => {
+    return pipelineCandidates.filter(candidate => candidate.stage === stage);
+  };
+
+  const navigateToStage = (stage: PipelineStage) => {
+    setPipelineAnimation(true);
+    setTimeout(() => {
+      setCurrentPipelineStage(stage);
+      setPipelineAnimation(false);
+    }, 150);
+  };
+
+  const getStageOrder = (): PipelineStage[] => {
+    return ['applied', 'screened', 'interviewed', 'offered', 'hired'];
+  };
+
+  const getPreviousStage = (currentStage: PipelineStage): PipelineStage | null => {
+    const stages = getStageOrder();
+    const currentIndex = stages.indexOf(currentStage);
+    return currentIndex > 0 ? stages[currentIndex - 1] : null;
+  };
+
+  const getNextStage = (currentStage: PipelineStage): PipelineStage | null => {
+    const stages = getStageOrder();
+    const currentIndex = stages.indexOf(currentStage);
+    return currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null;
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="p-4 border-b bg-card">
+      <header className="p-6 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between">
-          <Logo className="h-8 w-auto" />
-          <LanguageSelector />
+          <Logo className="animate-fade-in-up" />
+          <div className="animate-slide-in-right">
+            <LanguageSelector />
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto p-4 md:p-8 flex flex-col gap-8">
         {/* 1. Job Description Generator/Manual Input */}
-        <Card className="shadow-md transition-all">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Briefcase className="h-6 w-6 text-primary" />
+        <Card className="shadow-lg hover-lift animate-fade-in-up">
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
+                <Briefcase className="h-7 w-7 text-white" />
               </div>
-              <div>
-                <CardTitle className="text-xl">{getTranslation(language, "jobDescriptionGenerator")}</CardTitle>
-                <CardDescription>{getTranslation(language, "jobDescriptionDescription")}</CardDescription>
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "jobDescriptionGenerator")}</CardTitle>
+                <CardDescription className="text-base leading-relaxed">{getTranslation(language, "jobDescriptionDescription")}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -301,8 +423,35 @@ function HomeContent() {
                         </FormItem>
                       )} />
                     </div>
-                    <CardFooter className="justify-end">
-                      <Button type="submit" disabled={isLoadingJD}>
+                    
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold primary-text">Additional Details (Optional)</h4>
+                      <div className="grid md:grid-cols-1 gap-4">
+                        <FormField control={jdForm.control} name="technologies" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{getTranslation(language, "technologies")}</FormLabel>
+                            <FormControl><Input placeholder={getTranslation(language, "technologiesPlaceholder")} {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={jdForm.control} name="skills" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{getTranslation(language, "skills")}</FormLabel>
+                            <FormControl><Input placeholder={getTranslation(language, "skillsPlaceholder")} {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={jdForm.control} name="qualifications" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{getTranslation(language, "qualifications")}</FormLabel>
+                            <FormControl><Input placeholder={getTranslation(language, "qualificationsPlaceholder")} {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
+                    </div>
+                    <CardFooter className="flex justify-end pt-6">
+                      <Button type="submit" disabled={isLoadingJD} size="lg" className="min-w-[200px]">
                         {isLoadingJD ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                         {getTranslation(language, "generateJobDescription")}
                       </Button>
@@ -341,15 +490,15 @@ function HomeContent() {
         </Card>
 
         {/* 2. CV Upload & Scoring */}
-        <Card className={`shadow-md transition-all ${!jobDescription ? 'opacity-50 pointer-events-none' : ''}`}>
-          <CardHeader>
-             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <UserCheck className="h-6 w-6 text-primary" />
+        <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!jobDescription ? 'opacity-50 pointer-events-none' : ''}`}>
+          <CardHeader className="pb-6">
+             <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl secondary-bg shadow-lg hover-glow">
+                <UserCheck className="h-7 w-7 text-white" />
               </div>
-              <div>
-                              <CardTitle className="text-xl">{getTranslation(language, "cvUploadScoring")}</CardTitle>
-              <CardDescription>{getTranslation(language, "cvUploadDescription")}</CardDescription>
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "cvUploadScoring")}</CardTitle>
+                <CardDescription className="text-base leading-relaxed">{getTranslation(language, "cvUploadDescription")}</CardDescription>
                </div>
             </div>
           </CardHeader>
@@ -367,8 +516,8 @@ function HomeContent() {
                 </div>
             )}
           </CardContent>
-          <CardFooter className="justify-end">
-            <Button onClick={handleScoreCVs} disabled={isLoadingScores || cvFiles.length === 0}>
+          <CardFooter className="flex justify-end pt-6">
+            <Button onClick={handleScoreCVs} disabled={isLoadingScores || cvFiles.length === 0} size="lg" className="min-w-[160px]">
               {isLoadingScores ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
               {getTranslation(language, "scoreCVs")}
             </Button>
@@ -376,8 +525,8 @@ function HomeContent() {
         </Card>
 
         {(isLoadingScores || cvScores) && (
-            <Card className="shadow-md transition-all">
-                <CardHeader><CardTitle>{getTranslation(language, "scoringResults")}</CardTitle></CardHeader>
+            <Card className="shadow-lg hover-lift animate-fade-in-up">
+                <CardHeader className="pb-6"><CardTitle className="text-2xl font-bold primary-text">{getTranslation(language, "scoringResults")}</CardTitle></CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
@@ -405,9 +554,15 @@ function HomeContent() {
                                     <TableCell className="text-center font-bold text-lg">{score.score}</TableCell>
                                     <TableCell className="text-muted-foreground">{score.justification}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button size="sm" onClick={() => setSelectedCandidate({...score, cvSummary: score.justification})}>
-                                            {getTranslation(language, "select")}
-                                        </Button>
+                                        <div className="flex gap-2 justify-end">
+                                            <Button size="sm" onClick={() => setSelectedCandidate({...score, cvSummary: score.justification})}>
+                                                {getTranslation(language, "select")}
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={() => addCandidateToPipeline(score)}>
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add to Pipeline
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -419,15 +574,15 @@ function HomeContent() {
         )}
 
         {/* 3. Custom Interview Questions */}
-        <Card className={`shadow-md transition-all ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
+        <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl accent-bg shadow-lg hover-glow">
+                <FileText className="h-7 w-7 text-white" />
               </div>
-              <div>
-                              <CardTitle className="text-xl">{getTranslation(language, "customInterviewQuestions")}</CardTitle>
-              <CardDescription>{getTranslation(language, "customInterviewDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "customInterviewQuestions")}</CardTitle>
+                <CardDescription className="text-base leading-relaxed">{getTranslation(language, "customInterviewDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -435,8 +590,8 @@ function HomeContent() {
             <CardContent className="space-y-4">
               <Input name="focusSkills" placeholder={getTranslation(language, "focusSkillsPlaceholder")} />
             </CardContent>
-            <CardFooter className="justify-end">
-              <Button type="submit" disabled={isLoadingQuestions}>
+            <CardFooter className="flex justify-end pt-6">
+              <Button type="submit" disabled={isLoadingQuestions} size="lg" className="min-w-[180px]">
                 {isLoadingQuestions ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 {getTranslation(language, "generateQuestions")}
               </Button>
@@ -445,9 +600,9 @@ function HomeContent() {
         </Card>
 
         {(isLoadingQuestions || interviewQuestions) && (
-             <Card className="shadow-md transition-all">
-                <CardHeader>
-                    <CardTitle>{getTranslation(language, "generatedInterviewQuestions")}</CardTitle>
+             <Card className="shadow-lg hover-lift animate-fade-in-up">
+                <CardHeader className="pb-6">
+                    <CardTitle className="text-2xl font-bold primary-text">{getTranslation(language, "generatedInterviewQuestions")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isLoadingQuestions ? (
@@ -491,15 +646,15 @@ function HomeContent() {
         )}
 
         {/* 4. Offer or Rejection Letter */}
-        <Card className={`shadow-md transition-all ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                <Paperclip className="h-6 w-6 text-primary" />
+        <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
+                <Paperclip className="h-7 w-7 text-white" />
               </div>
-              <div>
-                              <CardTitle className="text-xl">{getTranslation(language, "offerRejectionLetter")}</CardTitle>
-              <CardDescription>{getTranslation(language, "offerRejectionDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "offerRejectionLetter")}</CardTitle>
+                <CardDescription className="text-base leading-relaxed">{getTranslation(language, "offerRejectionDescription", { candidateName: selectedCandidate?.candidateName || 'the candidate' })}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -541,8 +696,8 @@ function HomeContent() {
                    )} />
                 </div>
               </CardContent>
-              <CardFooter className="justify-end">
-                <Button type="submit" disabled={isLoadingLetter}>
+              <CardFooter className="flex justify-end pt-6">
+                <Button type="submit" disabled={isLoadingLetter} size="lg" className="min-w-[180px]">
                   {isLoadingLetter ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   {getTranslation(language, "generateLetter")}
                 </Button>
@@ -552,9 +707,9 @@ function HomeContent() {
         </Card>
 
         {(isLoadingLetter || letter) && (
-            <Card className="shadow-md transition-all">
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>{getTranslation(language, "generatedLetter")}</CardTitle>
+            <Card className="shadow-lg hover-lift animate-fade-in-up">
+                <CardHeader className="flex flex-row items-center justify-between pb-6">
+                    <CardTitle className="text-2xl font-bold primary-text">{getTranslation(language, "generatedLetter")}</CardTitle>
                     {!isLoadingLetter && letter && (
                         <div className="flex gap-2">
                             <Button variant="ghost" size="icon" onClick={() => handleCopy(letter)}><Clipboard className="h-4 w-4" /></Button>
@@ -579,10 +734,219 @@ function HomeContent() {
                 </CardContent>
             </Card>
         )}
+
+        {/* 5. Hiring Pipeline Tracker */}
+        <Card className="shadow-lg hover-lift animate-fade-in-up">
+          <CardHeader className="pb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
+                <BarChart3 className="h-7 w-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "hiringPipelineTracker")}</CardTitle>
+                <CardDescription className="text-base leading-relaxed">{getTranslation(language, "hiringPipelineDescription")}</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {pipelineCandidates.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">No candidates in pipeline</h3>
+                <p className="text-sm text-muted-foreground">Add candidates from the CV scoring results to start tracking your hiring pipeline.</p>
+              </div>
+            ) : (
+              <div className="relative">
+                {/* Pipeline Carousel */}
+                <div className="flex items-center justify-center gap-8 mb-8">
+                  {/* Previous Stage (if exists) */}
+                  {getPreviousStage(currentPipelineStage) && (
+                    <div className="flex flex-col items-center opacity-40 scale-90 transition-all duration-300">
+                      <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                          {getTranslation(language, getPreviousStage(currentPipelineStage)!)}
+                        </h4>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-muted-foreground">
+                            {getCandidatesForStage(getPreviousStage(currentPipelineStage)!).length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">candidates</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current Stage - Centered */}
+                  <div className="flex flex-col items-center">
+                    <div className="p-6 rounded-xl primary-bg shadow-lg border-2 border-primary/20">
+                      <h3 className="text-lg font-bold text-white mb-3 text-center">
+                        {getTranslation(language, currentPipelineStage)}
+                      </h3>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-white mb-1">
+                          {getCandidatesForStage(currentPipelineStage).length}
+                        </div>
+                        <div className="text-sm text-white/80">
+                          {getCandidatesForStage(currentPipelineStage).length === 1 ? 'candidate' : 'candidates'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Navigation Arrows */}
+                    <div className="flex items-center gap-4 mt-4">
+                      {getPreviousStage(currentPipelineStage) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigateToStage(getPreviousStage(currentPipelineStage)!)}
+                          className="flex items-center gap-2"
+                        >
+                          <ArrowRight className="h-4 w-4 rotate-180" />
+                          Previous
+                        </Button>
+                      )}
+                      
+                      {getNextStage(currentPipelineStage) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigateToStage(getNextStage(currentPipelineStage)!)}
+                          className="flex items-center gap-2"
+                        >
+                          Next
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Next Stage (if exists) - Hidden but reserved space */}
+                  {getNextStage(currentPipelineStage) && (
+                    <div className="w-32 h-24 opacity-0">
+                      {/* Reserved space for layout consistency */}
+                    </div>
+                  )}
+                </div>
+
+                {/* Current Stage Candidates */}
+                <div className={`transition-all duration-500 ${pipelineAnimation ? 'opacity-30 scale-95' : 'opacity-100 scale-100'}`}>
+                  {getCandidatesForStage(currentPipelineStage).length === 0 ? (
+                    <div className="text-center py-12 bg-secondary/30 rounded-lg border-2 border-dashed border-border">
+                      <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                        No candidates in {getTranslation(language, currentPipelineStage)} stage
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {getPreviousStage(currentPipelineStage) 
+                          ? `Move candidates from ${getTranslation(language, getPreviousStage(currentPipelineStage)!)} stage`
+                          : 'Add candidates from CV scoring results'
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <h4 className="text-lg font-semibold primary-text mb-2">
+                          Candidates in {getTranslation(language, currentPipelineStage)} Stage
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Manage candidates and move them to the next stage
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {getCandidatesForStage(currentPipelineStage).map((candidate) => (
+                          <Card key={candidate.id} className="p-4 border border-border hover:shadow-md transition-all duration-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="flex flex-col">
+                                  <h4 className="font-semibold">{candidate.name}</h4>
+                                  <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    {candidate.score && (
+                                      <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+                                        Score: {candidate.score}/10
+                                      </span>
+                                    )}
+                                    <span className="text-xs text-muted-foreground">
+                                      Applied: {candidate.appliedDate}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                {editingNotes === candidate.id ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      value={notesText}
+                                      onChange={(e) => setNotesText(e.target.value)}
+                                      placeholder="Add notes..."
+                                      className="w-48"
+                                    />
+                                    <Button size="sm" onClick={() => updateCandidateNotes(candidate.id, notesText)}>
+                                      Save
+                                    </Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setEditingNotes(null)}>
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <Button size="sm" variant="ghost" onClick={() => {
+                                      setEditingNotes(candidate.id);
+                                      setNotesText(candidate.notes);
+                                    }}>
+                                      <Edit3 className="h-3 w-3 mr-1" />
+                                      {getTranslation(language, "addNotes")}
+                                    </Button>
+                                    
+                                    {getNextStage(candidate.stage) && (
+                                      <Button size="sm" onClick={() => moveCandidateToStage(candidate.id, getNextStage(candidate.stage)!)}>
+                                        <ArrowRight className="h-3 w-3 mr-1" />
+                                        {getTranslation(language, "moveToNextStage")}
+                                      </Button>
+                                    )}
+                                    
+                                    {candidate.stage !== 'rejected' && candidate.stage !== 'hired' && (
+                                      <Button size="sm" variant="destructive" onClick={() => rejectCandidate(candidate.id)}>
+                                        <X className="h-3 w-3 mr-1" />
+                                        {getTranslation(language, "rejectCandidate")}
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {candidate.notes && (
+                              <div className="mt-3 p-3 bg-secondary/30 rounded-lg">
+                                <p className="text-sm text-muted-foreground mb-1">{getTranslation(language, "candidateNotes")}:</p>
+                                <p className="text-sm">{candidate.notes}</p>
+                              </div>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
-      <footer className="py-4 border-t mt-8">
-        <div className="container mx-auto text-center text-sm text-muted-foreground">
+      <footer className="py-8 border-t mt-12 bg-card/50">
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-8 w-8 rounded-lg primary-bg flex items-center justify-center">
+              <Users className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-lg font-semibold primary-text">TalentFlow</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
             {getTranslation(language, "allRightsReserved", { year: new Date().getFullYear() })}
+          </p>
         </div>
       </footer>
          </div>

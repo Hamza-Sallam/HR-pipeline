@@ -5,11 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe } from "lucide-react";
 
-export type Language = "en" | "ar" | "tr";
+export type Language = "en" | "tr";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "ar", name: "العربية", flag: "🇸🇦" },
   { code: "tr", name: "Türkçe", flag: "🇹🇷" },
 ] as const;
 
@@ -20,7 +19,7 @@ export function LanguageSelector() {
 
   useEffect(() => {
     const lang = searchParams.get("lang") as Language;
-    if (lang && ["en", "ar", "tr"].includes(lang)) {
+    if (lang && ["en", "tr"].includes(lang)) {
       setCurrentLanguage(lang);
     }
   }, [searchParams]);
