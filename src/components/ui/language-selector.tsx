@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe } from "lucide-react";
 
-export type Language = "en" | "tr";
+export type Language = "en" | "tr" | "ar";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
   { code: "tr", name: "Türkçe", flag: "🇹🇷" },
+  { code: "ar", name: "العربية", flag: "🇸🇦" },
 ] as const;
 
 export function LanguageSelector() {

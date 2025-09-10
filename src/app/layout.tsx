@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { LanguageProvider } from '@/contexts/language-context';
-import { RTLProvider } from '@/contexts/rtl-context';
 
 export const metadata: Metadata = {
   title: 'TalentFlow',
@@ -29,15 +28,12 @@ export default function RootLayout({
       <body className={cn('min-h-screen bg-background font-sans antialiased font-body')}>
         <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div>Loading...</div></div>}>
           <LanguageProvider>
-            <RTLProvider>
-              {children}
-              <Toaster />
-            </RTLProvider>
+            {children}
+            <Toaster />
           </LanguageProvider>
         </Suspense>
       </body>
     </html>
   );
 }
-
     

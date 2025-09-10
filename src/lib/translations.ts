@@ -21,6 +21,7 @@ export const translations = {
     experienceLevel: "Experience Level",
     technologies: "Technologies",
     skills: "Required Skills",
+    yearsOfExperience: "Years of Experience",
     qualifications: "Qualifications",
     decision: "Decision",
     salary: "Salary",
@@ -38,6 +39,7 @@ export const translations = {
     focusSkillsPlaceholder: "Optional: Focus skills or evaluation goals (e.g., React hooks, team collaboration)",
     manualJobDescriptionLabel: "Job Description",
     manualJobDescriptionPlaceholder: "Paste or type your job description here...",
+    yearsOfExperiencePlaceholder: "e.g., 5",
     
     // Options
     entry: "Entry",
@@ -47,6 +49,7 @@ export const translations = {
     reject: "Reject",
     selectLevel: "Select level",
     selectDecision: "Select decision",
+
     
     // Buttons
     generateJobDescription: "Generate Job Description",
@@ -56,6 +59,7 @@ export const translations = {
     select: "Select",
     generateWithAI: "Generate with AI",
     inputManually: "Input Manually",
+
     
     // Table headers
     candidateNameHeader: "Candidate Name",
@@ -69,7 +73,7 @@ export const translations = {
     situationalQuestions: "Situational Questions",
     
     // File upload
-    uploadCVs: "Upload CVs (PDF/TXT)",
+    uploadCVs: "Upload CVs (PDF/TXT/DOCX)",
     selectedFiles: "Selected files:",
     
     // Results
@@ -110,7 +114,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "Please generate a job description and upload CVs first.",
     
     // Footer
-    allRightsReserved: "© {year} TalentFlow. All rights reserved.",
+    allRightsReserved: "© {year} Hamza Sallam. All rights reserved.",
   },
   
   ar: {
@@ -181,7 +185,7 @@ export const translations = {
     situationalQuestions: "الأسئلة الموقفية",
     
     // File upload
-    uploadCVs: "رفع السير الذاتية (PDF/TXT)",
+    uploadCVs: "رفع السير الذاتية (PDF/TXT/DOCX)",
     selectedFiles: "الملفات المختارة:",
     
     // Results
@@ -222,7 +226,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "يرجى إنشاء وصف الوظيفة ورفع السير الذاتية أولاً.",
     
     // Footer
-    allRightsReserved: "© {year} TalentFlow. جميع الحقوق محفوظة.",
+    allRightsReserved: "© {year} Hamza Sallam. جميع الحقوق محفوظة.",
   },
   
   tr: {
@@ -293,7 +297,7 @@ export const translations = {
     situationalQuestions: "Durumsal Sorular",
     
     // File upload
-    uploadCVs: "CV'leri Yükle (PDF/TXT)",
+    uploadCVs: "CV'leri Yükle (PDF/TXT/DOCX)",
     selectedFiles: "Seçilen dosyalar:",
     
     // Results
@@ -334,7 +338,7 @@ export const translations = {
     pleaseGenerateJobDescriptionAndUploadCVs: "Lütfen önce bir iş tanımı oluşturun ve CV'leri yükleyin.",
     
     // Footer
-    allRightsReserved: "© {year} TalentFlow. Tüm hakları saklıdır.",
+    allRightsReserved: "© {year} Hamza Sallam. Tüm hakları saklıdır.",
   },
 } as const;
 

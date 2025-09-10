@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/icons/logo";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useLanguage } from "@/contexts/language-context";
+import { RTLProvider } from "@/contexts/rtl-context";
 import { getTranslation } from "@/lib/translations";
 import { Bot, Clipboard, Download, Loader2, Paperclip, Sparkles, FileText, Briefcase, UserCheck, BarChart3, TrendingUp, Users, Clock, Target, Award, ArrowRight, X, Plus, Edit3 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -342,8 +343,8 @@ function HomeContent() {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="p-6 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+    <>
+      <header className="p-6 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50" dir="ltr">
         <div className="container mx-auto flex items-center justify-between">
           <Logo className="animate-fade-in-up" />
           <div className="animate-slide-in-right">
@@ -352,13 +353,15 @@ function HomeContent() {
         </div>
       </header>
 
-      <main className="container mx-auto p-4 md:p-8 flex flex-col gap-8">
+      <div className="min-h-screen bg-background">
+        <RTLProvider>
+          <main className="container mx-auto p-4 md:p-8 flex flex-col gap-8">
         {/* 1. Job Description Generator/Manual Input */}
         <Card className="shadow-lg hover-lift animate-fade-in-up">
           <CardHeader className="pb-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
-                <Briefcase className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow overflow-hidden">
+                <img src="/job-desc.gif" alt="Job Description" className="h-15 w-15 object-contain" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "jobDescriptionGenerator")}</CardTitle>
@@ -493,8 +496,8 @@ function HomeContent() {
         <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!jobDescription ? 'opacity-50 pointer-events-none' : ''}`}>
           <CardHeader className="pb-6">
              <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl secondary-bg shadow-lg hover-glow">
-                <UserCheck className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl secondary-bg shadow-lg hover-glow overflow-hidden">
+                <img src="/cv_analysis.gif" alt="CV Analysis" className="h-15 w-15 object-contain" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "cvUploadScoring")}</CardTitle>
@@ -505,7 +508,7 @@ function HomeContent() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="cv-upload">{getTranslation(language, "uploadCVs")}</Label>
-              <Input id="cv-upload" type="file" multiple onChange={(e) => setCvFiles(Array.from(e.target.files || []))} className="mt-1 file:text-primary file:font-semibold"/>
+              <Input id="cv-upload" type="file" multiple accept=".pdf,.txt,.docx,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setCvFiles(Array.from(e.target.files || []))} className="mt-1 file:text-primary file:font-semibold"/>
             </div>
             {cvFiles.length > 0 && (
                 <div className="text-sm text-muted-foreground space-y-1">
@@ -577,8 +580,8 @@ function HomeContent() {
         <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
           <CardHeader className="pb-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl accent-bg shadow-lg hover-glow">
-                <FileText className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl accent-bg shadow-lg hover-glow overflow-hidden">
+                <img src="/job-interview.gif" alt="Job Interview" className="h-15 w-15 object-contain" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "customInterviewQuestions")}</CardTitle>
@@ -649,8 +652,8 @@ function HomeContent() {
         <Card className={`shadow-lg hover-lift animate-fade-in-up transition-all duration-300 ${!selectedCandidate ? 'opacity-50 pointer-events-none' : ''}`}>
           <CardHeader className="pb-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
-                <Paperclip className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow overflow-hidden">
+                <img src="/candidate.gif" alt="Candidate" className="h-15 w-15 object-contain" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "offerRejectionLetter")}</CardTitle>
@@ -739,8 +742,8 @@ function HomeContent() {
         <Card className="shadow-lg hover-lift animate-fade-in-up">
           <CardHeader className="pb-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow">
-                <BarChart3 className="h-7 w-7 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl primary-bg shadow-lg hover-glow overflow-hidden">
+                <img src="/analysis.gif" alt="Analysis" className="h-15 w-15 object-contain" />
               </div>
               <div className="flex-1">
                 <CardTitle className="text-2xl font-bold primary-text mb-2">{getTranslation(language, "hiringPipelineTracker")}</CardTitle>
@@ -935,12 +938,15 @@ function HomeContent() {
             )}
           </CardContent>
         </Card>
-      </main>
-      <footer className="py-8 border-t mt-12 bg-card/50">
+          </main>
+        </RTLProvider>
+      </div>
+      
+      <footer className="py-8 border-t mt-12 bg-card/50" dir="ltr">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="h-8 w-8 rounded-lg primary-bg flex items-center justify-center">
-              <Users className="h-4 w-4 text-white" />
+            <div className="h-12 w-12 rounded-lg  flex items-center justify-center overflow-hidden">
+              <img src="/talent.gif" alt="TalentFlow" className="h-12 w-12 object-contain" />
             </div>
             <span className="text-lg font-semibold primary-text">TalentFlow</span>
           </div>
@@ -949,7 +955,7 @@ function HomeContent() {
           </p>
         </div>
       </footer>
-         </div>
+    </>
    );
  }
 
