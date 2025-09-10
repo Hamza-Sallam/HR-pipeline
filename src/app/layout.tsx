@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { LanguageProvider } from '@/contexts/language-context';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'TalentFlow',
@@ -32,6 +33,7 @@ export default function RootLayout({
             <Toaster />
           </LanguageProvider>
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );
